@@ -48,3 +48,11 @@ export const DEFAULT_MENU_STYLE = {
     blur: 0,
     darken: 0.2
 };
+
+export const DEFAULT_IMAGE_SETTINGS = {
+    brightness: 100,
+    contrast: 100,
+    opacity: 1,
+    blur: 0,
+    darken: 0.2
+};

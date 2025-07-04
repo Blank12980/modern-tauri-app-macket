@@ -1,7 +1,6 @@
-import { themeManager } from '../utils/themeManager';
+import { themeManager, DEFAULT_THEME } from '../utils/themeManager';
 import { COLOR_SCHEMES, DEFAULT_COLORS, DEFAULT_MENU_STYLE } from '../constants/color';
 import type { ColorSchemeName } from '../constants/color';
-
 
 // Глобальный кэш для фоновых изображений
 let backgroundImagesCache: string[] = [];
@@ -30,6 +29,7 @@ export async function Settings() {
     const currentTheme = themeManager.getCurrentTheme();
     const backgrounds = getBackgroundImages();
     const menuStyle = currentTheme.menuStyle || DEFAULT_MENU_STYLE;
+    const bgSettings = currentTheme.backgroundSettings || DEFAULT_THEME.backgroundSettings;
     console.log(currentTheme)
 
     return `
@@ -140,12 +140,50 @@ export async function Settings() {
                 </button>
             </div>
         </div>
+        <div class="setting-section">
+            <h2 style="margin-bottom: 10px;">Настройки фона</h2>
+            
+            <div class="image-control" style="padding-left: 10px;">
+                <label>Яркость: <span>${bgSettings.brightness}</span>%</label>
+                <input type="range" min="0" max="200" value="${bgSettings.brightness}" 
+                       id="bg-brightness">
+            </div>
+            
+            <div class="image-control" style="padding-left: 10px;">
+                <label>Контраст: <span>${bgSettings.contrast}</span>%</label>
+                <input type="range" min="0" max="200" value="${bgSettings.contrast}" 
+                       id="bg-contrast">
+            </div>
+            
+            <div class="image-control" style="padding-left: 10px;">
+                <label>Прозрачность: <span>${Math.round(bgSettings.opacity * 100)}</span>%</label>
+                <input type="range" min="0" max="100" value="${Math.round(bgSettings.opacity * 100)}" 
+                       id="bg-opacity">
+            </div>
+            
+            <div class="image-control" style="padding-left: 10px;">
+                <label>Размытие: <span>${bgSettings.blur}</span>px</label>
+                <input type="range" min="0" max="20" value="${bgSettings.blur}" 
+                       id="bg-blur">
+            </div>
+            
+            <div class="image-control" style="padding-left: 10px;">
+                <label>Затемнение: <span>${Math.round(bgSettings.darken * 100)}</span>%</label>
+                <input type="range" min="0" max="100" value="${Math.round(bgSettings.darken * 100)}" 
+                       id="bg-darken">
+            </div>
+            
+            <button id="reset-bg-settings" class="reset-button">Сбросить настройки</button>
+        </div>
+
     </div>
     `;
 };
 
 export function initSettings() {
     setTimeout(() => {
+
+        
         // Обработчик кнопки "Без фона"
         const noBackgroundBtn = document.getElementById('no-background-btn');
         noBackgroundBtn?.addEventListener('click', () => {
@@ -277,6 +315,8 @@ export function initSettings() {
             });
         });
 
+
+
         // Обработчик загрузки файла
         document.getElementById('bg-upload')?.addEventListener('change', (e) => {
             const input = e.target as HTMLInputElement;
@@ -328,7 +368,66 @@ export function initSettings() {
         });
 
 
+        // Обработчики для каждого параметра
+        const bgSettingsHandlers = [
+            { id: 'brightness', key: 'brightness' },
+            { id: 'contrast', key: 'contrast' },
+            { id: 'opacity', key: 'opacity', transform: (v: number) => v / 100 },
+            { id: 'blur', key: 'blur' },
+            { id: 'darken', key: 'darken', transform: (v: number) => v / 100 }
+        ];
 
+        bgSettingsHandlers.forEach(({ id, key, transform }) => {
+            const input = document.getElementById(`bg-${id}`);
+            const valueSpan = input?.previousElementSibling?.querySelector('span');
+            
+            input?.addEventListener('input', (e) => {
+                let value = parseInt((e.target as HTMLInputElement).value);
+                if (transform) value = transform(value);
+                
+                themeManager.setBackgroundSettings({ [key]: value });
+                
+                if (valueSpan) {
+                    valueSpan.textContent = transform 
+                        ? Math.round(value * 100).toString()
+                        : value.toString();
+                }
+            });
+        });
+
+        // Обработчик сброса
+        document.getElementById('reset-bg-settings')?.addEventListener('click', () => {
+            themeManager.resetBackgroundSettings();
+
+            // Обновляем значения ползунков
+            const defaults = DEFAULT_THEME.backgroundSettings;
+            (document.getElementById('bg-brightness') as HTMLInputElement).value = defaults.brightness.toString();
+            (document.getElementById('bg-contrast') as HTMLInputElement).value = defaults.contrast.toString();
+            (document.getElementById('bg-opacity') as HTMLInputElement).value = Math.round(defaults.opacity * 100).toString();
+            (document.getElementById('bg-blur') as HTMLInputElement).value = defaults.blur.toString();
+            (document.getElementById('bg-darken') as HTMLInputElement).value = Math.round(defaults.darken * 100).toString();
+            
+            // Обновляем отображаемые значения
+            document.querySelectorAll('.image-control label span').forEach((span, index) => {
+                switch(index) {
+                    case 0:
+                        span.textContent = defaults.brightness.toString();
+                        break;
+                    case 1:
+                        span.textContent = defaults.contrast.toString();
+                        break;
+                    case 2:
+                        span.textContent = Math.round(defaults.opacity * 100).toString();
+                        break;
+                    case 3:
+                        span.textContent = defaults.blur.toString();
+                        break;
+                    case 4:
+                        span.textContent = Math.round(defaults.darken * 100).toString();
+                        break;
+                }
+            });
+        });
 
 
          // Обработчик сброса кастомного фона

@@ -1,5 +1,6 @@
 import { COLOR_SCHEMES, type ColorSchemeName, DEFAULT_MENU_STYLE } from '../constants/color';
 
+
 type MenuStyleSettings = {
     opacity: number;
     blur: number;
@@ -13,16 +14,30 @@ type ThemeSettings = {
     customTextColor: string | null;
     customBackgroundColor: string | null;
     menuStyle: MenuStyleSettings;
+    backgroundSettings: {
+        brightness: number;
+        contrast: number;
+        opacity: number;
+        blur: number;
+        darken: number;
+    };
 };
 
 
-const DEFAULT_THEME: ThemeSettings = {
+export const DEFAULT_THEME: ThemeSettings = {
     colorScheme: 'dark',
     backgroundImage: null,
     customBackground: null,
     customTextColor: null,
     customBackgroundColor: null,
     menuStyle: DEFAULT_MENU_STYLE,
+    backgroundSettings: {
+        brightness: 100,
+        contrast: 100,
+        opacity: 1,
+        blur: 0,
+        darken: 0.2
+    }
 };
 
 class ThemeManager {
@@ -86,9 +101,56 @@ class ThemeManager {
             this.applyBackground(theme);
             this.saveTheme(theme);
             this.notifySubscribers();
+
+            this.applyBackgroundSettings(theme.backgroundSettings);
+            this.saveTheme(theme);
+            this.notifySubscribers();
         });
     }
 
+    private applyBackgroundSettings(settings: ThemeSettings['backgroundSettings']) {
+        const bgContainer = document.getElementById('background-container');
+        if (!bgContainer) return;
+
+        // Создаем стиль для фона
+        bgContainer.style.filter = `
+            brightness(${settings.brightness}%)
+            contrast(${settings.contrast}%)
+            blur(${settings.blur}px)
+        `;
+        bgContainer.style.opacity = `${settings.opacity}`;
+        
+        // Затемнение
+        let overlay = document.getElementById('bg-darken-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'bg-darken-overlay';
+            overlay.style.position = 'absolute';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.pointerEvents = 'none';
+            overlay.style.zIndex = '0';
+            bgContainer.appendChild(overlay);
+        }
+        overlay.style.backgroundColor = `rgba(0, 0, 0, ${settings.darken})`;
+    }
+
+    // Добавим методы для управления настройками изображения
+    public setBackgroundSettings(settings: Partial<ThemeSettings['backgroundSettings']>) {
+        this.applyTheme({
+            ...this.currentTheme,
+            backgroundSettings: {
+                ...this.currentTheme.backgroundSettings,
+                ...settings
+            }
+        });
+    }
+
+    public resetBackgroundSettings() {
+        this.setBackgroundSettings(DEFAULT_THEME.backgroundSettings);
+    }
     private applyMenuStyle(style: MenuStyleSettings) {
         const menu = document.getElementById('menu');
         if (menu) {
@@ -109,7 +171,7 @@ class ThemeManager {
     }
 
     private applyBackground(theme: ThemeSettings) {
-        const windowContent = document.getElementById('window-content');
+        const windowContent = document.getElementById('background-container');
         if (!windowContent) return;
 
         const bgImage = theme.customBackground || theme.backgroundImage;

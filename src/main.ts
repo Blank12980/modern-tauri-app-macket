@@ -30,6 +30,18 @@ preloadSettingsData().then(() => {
           background-color: var(--background-color);
           color: var(--text-color);
       ">
+        <div id="background-container" style="
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 0;
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+        "></div>
+
         ${Menu()}  
         <div id="main-content-container" style="
             flex-grow: 1;
