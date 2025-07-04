@@ -1,6 +1,6 @@
 import { themeManager } from '../utils/themeManager';
 import { COLOR_SCHEMES, DEFAULT_COLORS, DEFAULT_MENU_STYLE } from '../constants/color';
-
+import type { ColorSchemeName } from '../constants/color';
 
 
 // Глобальный кэш для фоновых изображений
@@ -384,7 +384,7 @@ export function initSettings() {
             // Обновляем выделение цветовой схемы
             document.querySelectorAll('.color-scheme').forEach(el => {
                 const schemeName = el.getAttribute('data-scheme');
-                el.style.border = schemeName === theme.colorScheme ? 
+                (el as HTMLElement).style.border = schemeName === theme.colorScheme ? 
                     '2px solid var(--primary-color)' : 
                     '2px solid transparent';
             });
@@ -392,7 +392,7 @@ export function initSettings() {
             // Обновляем выделение фона
             document.querySelectorAll('[data-bg]').forEach(el => {
                 const bgUrl = el.getAttribute('data-bg');
-                el.style.border = bgUrl === theme.backgroundImage ? 
+                (el as HTMLElement).style.border = bgUrl === theme.backgroundImage ? 
                     '2px solid var(--primary-color)' : 
                     '2px solid transparent';
             });

@@ -118,7 +118,7 @@ export const Menu = () => {
                     
                     // Подсветка активной кнопки
                     menuButtons.forEach(btn => {
-                        btn.style.backgroundColor = 'transparent';
+                        (btn as HTMLElement).style.backgroundColor = 'transparent';
                     });
                     target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
                     
